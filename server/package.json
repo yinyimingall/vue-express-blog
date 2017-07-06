@@ -1,0 +1,19 @@
+{
+  "name": "blog-server2",
+  "version": "1.0.0",
+  "description": "server for blog",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Martin Yin",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "jsonwebtoken": "^7.4.1",
+    "moment": "^2.18.1",
+    "mongoose": "^4.11.1",
+    "sha1": "^1.1.1"
+  }
+}
