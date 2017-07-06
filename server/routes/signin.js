@@ -1,11 +1,12 @@
 const express = require('express')
+const sha1 = require('sha1')
 const User = require('../service/user')
-
+const createToken = require('../middleware/createToken')
 let router = new express.Router()
 
-router.post('/commit', (req, res, next) => {
+router.post('/', (req, res, next) => {
     let username = req.body.username;
-    let password = req.body.password;
+    let password = sha1(req.body.password);
     User.findByName(username, (err, user) => {
         if (err) {
             res.send({
@@ -17,7 +18,8 @@ router.post('/commit', (req, res, next) => {
         if (user && user.password === password) {
             res.send({
                 code: 200,
-                message: '登陆成功'
+                message: '登陆成功',
+                token: createToken(username)
             })
         } else {
             res.send({

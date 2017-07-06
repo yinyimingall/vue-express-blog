@@ -1,11 +1,12 @@
 const express = require('express')
+const sha1 = require('sha1')
 const User = require('../service/user')
 
 let router = express.Router();
 
 router.post('/commit', (req, res, next) => {
     let username = req.body.username;
-    let password = req.body.password;
+    let password = sha1(req.body.password);
     let user = {
         username,
         password
@@ -21,10 +22,12 @@ router.post('/commit', (req, res, next) => {
             return console.log('save error:' + err);
         }
         console.log('save success' + user)
-        res.send({
-            code: 200,
-            message: '注册成功'
-        })
+        if (user) {
+            res.send({
+                code: 200,
+                message: '注册成功'
+            })
+        }
     })
 })
 
@@ -39,14 +42,14 @@ router.get('/checkname', (req, res, next) => {
             })
             return console.log('save error:' + err);
         }
-        if(user && user.username === username) {
+        if (user && user.username === username) {
             res.send({
                 code: 105,
                 message: '用户名已经存在'
             })
             return;
         }
-        if(!user) {
+        if (!user) {
             res.send({
                 code: '200',
                 message: '用户名可用'
