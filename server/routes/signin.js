@@ -23,7 +23,7 @@ router.post('/', (req, res, next) => {
             })
         } else {
             res.send({
-                code: 001,
+                code: 401,
                 message: '用户名或密码不正确'
             })
         }

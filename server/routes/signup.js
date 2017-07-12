@@ -4,7 +4,7 @@ const User = require('../service/user')
 
 let router = express.Router();
 
-router.post('/commit', (req, res, next) => {
+router.post('/submit', (req, res, next) => {
     let username = req.body.username;
     let password = sha1(req.body.password);
     let user = {
@@ -15,7 +15,7 @@ router.post('/commit', (req, res, next) => {
         if (err) {
             if (err.code === 11000) {
                 res.send({
-                    code: 100,
+                    code: 401,
                     message: '用户名已经存在'
                 })
             }
@@ -37,21 +37,21 @@ router.get('/checkname', (req, res, next) => {
     User.findByName(username, (err, user) => {
         if (err) {
             res.send({
-                code: '514',
+                code: 409,
                 message: '数据库查询失败'
             })
             return console.log('save error:' + err);
         }
         if (user && user.username === username) {
             res.send({
-                code: 105,
+                code: 401,
                 message: '用户名已经存在'
             })
             return;
         }
         if (!user) {
             res.send({
-                code: '200',
+                code: 200,
                 message: '用户名可用'
             })
         }
