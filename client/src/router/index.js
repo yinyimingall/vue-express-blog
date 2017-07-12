@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Hello from '@/components/Hello'
 import Login from '../views/console/login'
+import Admin from '../views/console/admin'
 Vue.use(Router)
 
 export default new Router({
@@ -12,9 +13,18 @@ export default new Router({
       component: Login
     },
     {
-      path: '/login',
+      path: '/console/login',
       name: 'login',
       component: Login
+    },
+    {
+      path: '/console',
+      name: 'admin',
+      component: Admin
+    },
+    {
+      path: '*',
+      redirect: '/'
     }
   ]
 })

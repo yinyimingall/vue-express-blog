@@ -5,21 +5,21 @@
         <h1 class="title-log">Blog</h1>
         <div v-show="isRegisterPage" class="form-style">
           <div class="round" :class="{ 'round-reg': isRegisterPage}" @click="toggleLogin"></div>
-          <input v-model="username" placeholder="请输入用户名" class="input-error"></input>
+          <input v-model="username" placeholder="请输入用户名" id="register-input"></input>
           <span class="input-message" :class="{ success: regInputMsg.username == 'OK', warning: regInputMsg.username == '用户名已存在'}">{{ regInputMsg.username }}</span>
           <input v-model="password" type="password" placeholder="请输入密码"></input>
           <span class="input-message" :class="{ success: regInputMsg.password == 'OK', warning: regInputMsg.password == '密码不一致'}">{{ regInputMsg.password }}</span>
-          <input v-model="repeatPassword" type="password" placeholder="请重复密码"></input>
+          <input v-model="repeatPassword" type="password" placeholder="请重复密码" @keyup.enter="register"></input>
           <span class="input-message" :class="{ success: regInputMsg.repeatPassword == 'OK', warning: regInputMsg.repeatPassword == '密码不一致'}">{{ regInputMsg.repeatPassword }}</span>
-          <button class="btn">
+          <button class="btn" @click.enter="register">
             <span>注册</span>
           </button>
         </div>
         <div v-show="!isRegisterPage" class="form-style">
           <div class="round" :class="{ 'round-reg': isRegisterPage}" @click="toggleLogin"></div>
-          <input v-model="username" placeholder="请输入用户名"></input>
-          <input v-model="password" placeholder="请输入密码"></input>
-          <button class="btn" @click="register">
+          <input v-model="username" placeholder="请输入用户名" autofocus id="signin-input"></input>
+          <input v-model="password" placeholder="请输入密码" type="password" @keyup.enter="signin"></input>
+          <button class="btn" @click.enter="signin" type="button" value="登录">
             <span>登录</span>
           </button>
         </div>
@@ -42,11 +42,15 @@ export default {
         username: '',
         password: '',
         repeatPassword: ''
+      },
+      regState: {
+        username: false,
+        password: false
       }
     }
   },
   mouted() {
-
+   
   },
   computed: {
 
@@ -56,36 +60,57 @@ export default {
       this.regInputMsg.username = '校验中...'
       if (this.username == '') {
         this.regInputMsg.username = ''
+        this.regState.username = false;
       } else {
         this.checkUserName()
       }
     },
     password: function () {
-      this.regInputMsg.password = '校验中...'
-      this.regInputMsg.repeatPassword = '校验中...'
+      if (!(this.password == '' && this.repeatPassword == '')) {
+        this.regInputMsg.password = '校验中...'
+        this.regInputMsg.repeatPassword = '校验中...'
+      }
       this.checkPassword()
       this.checkTwoPassWord()
     },
     repeatPassword: function () {
-      this.regInputMsg.repeatPassword = '校验中...'
+      if (!(this.password == '' && this.repeatPassword == '')) {
+        this.regInputMsg.repeatPassword = '校验中...'
+      }
       this.checkTwoPassWord()
     }
   },
   methods: {
     toggleLogin() {
+      this.emptyInput()
+
       this.isRegisterPage = !this.isRegisterPage;
+      this.$nextTick(function () {
+        let reg$ = document.querySelector('#register-input')
+        let signin$ = document.querySelector('#signin-input')
+        if (this.isRegisterPage) {
+          reg$.focus()
+        } else {
+          signin$.focus()
+        }
+      })
     },
     checkUserName: debounce(function () {
       if (this.username == '') {
+        this.regState.username = false
         return;
       }
       api.searchNameExist(this.username)
         .then((res) => {
-          if (res.data.code == 200) {
-            this.regInputMsg.username = 'OK'
-          }
-          if (res.data.code == 105) {
-            this.regInputMsg.username = '用户名已存在'
+          if (res.status == 200) {
+            if (res.data.code == 200) {
+              this.regInputMsg.username = 'OK'
+              this.regState.username = true
+            }
+            if (res.data.code == 401) {
+              this.regInputMsg.username = '用户名已存在'
+              this.regState.username = false
+            }
           }
         })
         .catch((res) => {
@@ -105,15 +130,106 @@ export default {
         if (this.password == '') {
           this.regInputMsg.password = ''
           this.regInputMsg.repeatPassword = ''
+          this.regState.password = false
           return;
         }
+        this.regInputMsg.password = 'OK'
         this.regInputMsg.repeatPassword = 'OK'
+        this.regState.password = true
       } else {
+        this.regState.password = false
         this.regInputMsg.repeatPassword = '密码不一致'
       }
     }, 500),
-    register () {
-      
+    checkAllReg() {
+      if (this.regState.username && this.regState.password) {
+        return true
+      }
+      if (!this.regState.username) {
+        this.regInputMsg.username = '无效用户名'
+      }
+      if (!this.regState.password) {
+        this.regInputMsg.password = '无效密码'
+        this.regInputMsg.repeatPassword = '无效密码'
+      }
+      return false
+    },
+    register() {
+      if (this.checkAllReg()) {
+        let params = {
+          username: this.username,
+          password: this.password
+        }
+        api.register(params)
+          .then((res) => {
+            if (res.status == 200) {
+              if (res.data.code == 200) {
+                this.toggleLogin()
+                this.$message({
+                  message: '注册成功',
+                  type: 'success'
+                })
+              }
+              if (res.data.code == 401) {
+                this.$message({
+                  message: '注册失败',
+                  type: 'warning'
+                })
+              }
+            }
+
+          })
+          .catch((res) => {
+            console.log(res)
+          })
+      }
+    },
+    checkAllLogin() {
+      if (this.username !== '' && this.password !== '') {
+        return true
+      }
+      this.password = ''
+      this.$message({
+        message: '用户名或密码不正确',
+        type: 'error'
+      })
+      return false
+    },
+    signin() {
+      if (this.checkAllLogin()) {
+        let params = {
+          username: this.username,
+          password: this.password
+        }
+        api.signin(params)
+          .then((res) => {
+            if (res.status == 200) {
+              if (res.data.code == 200) {
+                this.$message({
+                  message: '登录成功',
+                  type: 'success'
+                })
+                this.$router.push({ path: 'console' })
+              }
+              if (res.data.code == 401) {
+                this.password = ''
+                this.$message({
+                  message: '用户名或密码不正确',
+                  type: 'error'
+                })
+              }
+            }
+          })
+          .catch((res) => {
+
+          })
+      }
+
+    },
+    emptyInput() {
+      this.username = ''
+      this.password = ''
+      this.repeatPassword = ''
     }
   }
 }
@@ -173,6 +289,8 @@ export default {
     width: 280px;
     margin-left: 100px;
     height: 38px;
+    color: #2d3a4b;
+    font-size: 15px;
     border: 1px solid #c4c4c4;
     border-radius: 3px;
     background: #fff;

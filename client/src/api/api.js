@@ -1,27 +1,20 @@
 import axios from 'axios'
 
-const baseURL = 'http://localhost:3000/api1.0';
+axios.defaults.baseURL = 'http://localhost:3000/api1.0'
+axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
+
 export default {
     register(params) {
-        return axios.post('/user', params)
-            // .then(function (res) {
-            //     console.log(res);
-            // })
-            // .catch(function (err) {
-            //     console.log(err);
-            // });
+        return axios.post('/signup/submit', params)
     },
     searchNameExist(username) {
-        return axios.get(baseURL + '/signup/checkname', {
+        return axios.get('/signup/checkname', {
             params: {
                 username: username
             }
         })
-        // .then(function (response) {
-        //     console.log(response);
-        // })
-        // .catch(function (err) {
-        //     console.log(err);
-        // });
+    },
+    signin(params) {
+        return axios.post('/signin', params)
     }
 }
